@@ -51,6 +51,8 @@
         .hidden { display: none; }
         .error { color: #dc2626; font-size: 14px; margin-top: 5px; }
         .welcome-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; color: #1e40af; font-weight: 600; margin-bottom: 20px; }
+        .update-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; color: #1e40af; font-weight: 600; margin-bottom: 20px; border-left-color: #3b82f6; color: #1e3a8a; background-color: #eff6ff; }
+        .success-msg { border-left: 4px solid #10b981; color: #065f46; background-color: #ecfdf5; padding: 12px; border-radius: 6px; font-weight: 600; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -63,15 +65,14 @@
     <div id="lookup-step">
         <div class="form-group">
             <label for="ref-input">Unique Reference Number</label>
-            <input type="text" id="ref-input" placeholder="e.g., REF101">
+            <input type="text" id="ref-input" placeholder="e.g., m101">
             <div id="error-msg" class="error hidden">Reference number not found. Please check and try again.</div>
         </div>
         <button type="button" onclick="verifyMember()">Verify My Details</button>
     </div>
 
-    <!-- STEP 2: DETAILS & SUBMIT STEP (SUBMITS TO GOOGLE WEB APP) -->
+    <!-- STEP 2: DETAILS & SUBMIT STEP -->
     <form id="rsvp-form" class="hidden" method="POST">
-        <!-- Hidden inputs to send matched details to Google Sheet -->
         <input type="hidden" name="refNumber" id="form-ref">
         <input type="hidden" name="fullName" id="form-name">
 
@@ -103,17 +104,25 @@
         <button type="submit" id="submit-btn">Confirm RSVP</button>
     </form>
     
-    <!-- STEP 3: SUCCESS MESSAGE -->
+    <!-- STEP 3A: NEW REGISTRATION SUCCESS MESSAGE -->
     <div id="success-step" class="hidden">
-        <div class="welcome-msg" style="border-left-color: #10b981; color: #065f46; background-color: #ecfdf5;">
+        <div class="success-msg">
             🎉 RSVP Submitted Successfully! Thank you.
         </div>
         <p>Your details have been logged directly into the master registry database.</p>
     </div>
+
+    <!-- STEP 3B: UPDATED REGISTRATION SUCCESS MESSAGE -->
+    <div id="update-step" class="hidden">
+        <div class="update-msg">
+            🔄 RSVP Updated Successfully!
+        </div>
+        <p>Your existing details have been modified with your new responses.</p>
+    </div>
 </div>
 
 <script>
-    // YOUR MEMBERSHIP ROSTER DATA (Update this with your real list)
+    // YOUR MEMBERSHIP ROSTER DATA (Ensure keys remain lowercase)
     const memberRoster = {
         "m101": "John Smith",
         "m102": "Sarah Jones",
@@ -121,11 +130,13 @@
         "m104": "David Beckham"
     };
 
+    // Live-formatting listener: immediately converts typed input to lowercase string
+    document.getElementById('ref-input').addEventListener('input', function(e) {
+        this.value = this.value.toLowerCase();
+    });
+
     function verifyMember() {
-       // Automatically forces anything typed into the text box into lowercase letters
-document.getElementById('ref-input').addEventListener('input', function(e) {
-    this.value = this.value.toLowerCase();
-});
+        const input = document.getElementById('ref-input').value.trim().toLowerCase();
         const errorMsg = document.getElementById('error-msg');
         const lookupStep = document.getElementById('lookup-step');
         const rsvpForm = document.getElementById('rsvp-form');
@@ -134,12 +145,10 @@ document.getElementById('ref-input').addEventListener('input', function(e) {
         if (memberRoster[input]) {
             errorMsg.classList.add('hidden');
             
-            // Populating the form data
             document.getElementById('form-ref').value = input;
             document.getElementById('form-name').value = memberRoster[input];
             welcomeText.innerText = `Welcome, ${memberRoster[input]}!`;
             
-            // Toggle view panels
             lookupStep.classList.add('hidden');
             rsvpForm.classList.remove('hidden');
         } else {
@@ -154,20 +163,33 @@ document.getElementById('ref-input').addEventListener('input', function(e) {
         submitBtn.innerText = "Submitting...";
         submitBtn.disabled = true;
 
-        // PASTE YOUR GOOGLE WEB APP URL HERE BEFORE UPLOADING TO GITHUB
-        const googleWebAppUrl = "https://script.google.com/macros/s/AKfycbz3ZWhTUT4BbxamQzoGaa4xQ7wRG1R1ReR6SWaMhCAwFxKzD6Gpb8QYbTY1vVkXKzon4Q/exec
-";
+        const googleWebAppUrl = "https://google.com";
 
-        const formData = new FormData(this);
+        // Build URL encoded query body parameters instead of raw FormData objects
+        const urlEncodedData = new URLSearchParams();
+        urlEncodedData.append("refNumber", document.getElementById('form-ref').value);
+        urlEncodedData.append("fullName", document.getElementById('form-name').value);
+        urlEncodedData.append("attendance", document.getElementById('attendance').value);
+        urlEncodedData.append("guests", document.getElementById('guests').value);
+        urlEncodedData.append("notes", document.getElementById('notes').value);
         
         fetch(googleWebAppUrl, {
             method: 'POST',
-            body: formData,
-            mode: 'no-cors' // Bypasses browser restriction rules securely
+            body: urlEncodedData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         })
-        .then(() => {
+        .then(response => response.text())
+        .then(statusText => {
             document.getElementById('rsvp-form').classList.add('hidden');
-            document.getElementById('success-step').classList.remove('hidden');
+            
+            // Evaluates what Google Script sent back and flags the matching success state
+            if (statusText === "Updated") {
+                document.getElementById('update-step').classList.remove('hidden');
+            } else {
+                document.getElementById('success-step').classList.remove('hidden');
+            }
         })
         .catch(err => {
             alert("Error sending details. Please check your internet connection.");
