@@ -35,7 +35,7 @@
             box-sizing: border-box;
             font-size: 16px;
         }
-        button {
+        button, input[type="submit"] {
             width: 100%;
             background-color: #2563eb;
             color: white;
@@ -47,12 +47,10 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        button:hover { background-color: #1d4ed8; }
+        button:hover, input[type="submit"]:hover { background-color: #1d4ed8; }
         .hidden { display: none; }
         .error { color: #dc2626; font-size: 14px; margin-top: 5px; }
         .welcome-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; color: #1e40af; font-weight: 600; margin-bottom: 20px; }
-        .update-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #3b82f6; color: #1e3a8a; font-weight: 600; margin-bottom: 20px; }
-        .success-msg { border-left: 4px solid #10b981; color: #065f46; background-color: #ecfdf5; padding: 12px; border-radius: 6px; font-weight: 600; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -72,7 +70,8 @@
     </div>
 
     <!-- STEP 2: DETAILS & SUBMIT STEP -->
-    <form id="rsvp-form" class="hidden" method="POST">
+    <!-- Direct native action submission to bypass all browser security blocks -->
+    <form id="rsvp-form" class="hidden" action="https://google.com" method="POST">
         <input type="hidden" name="refNumber" id="form-ref">
         <input type="hidden" name="fullName" id="form-name">
 
@@ -101,28 +100,12 @@
             <input type="text" name="notes" id="notes" placeholder="e.g., Vegetarian, allergies, none">
         </div>
 
-        <button type="submit" id="submit-btn">Confirm RSVP</button>
+        <input type="submit" value="Confirm RSVP">
     </form>
-    
-    <!-- STEP 3A: NEW REGISTRATION SUCCESS MESSAGE -->
-    <div id="success-step" class="hidden">
-        <div class="success-msg">
-            🎉 RSVP Submitted Successfully! Thank you.
-        </div>
-        <p>Your details have been logged directly into the master registry database.</p>
-    </div>
-
-    <!-- STEP 3B: UPDATED REGISTRATION SUCCESS MESSAGE -->
-    <div id="update-step" class="hidden">
-        <div class="update-msg">
-            🔄 RSVP Updated Successfully!
-        </div>
-        <p>Your existing details have been modified with your new responses.</p>
-    </div>
 </div>
 
 <script>
-    // YOUR MEMBERSHIP ROSTER DATA (Ensure keys remain lowercase)
+    // YOUR MEMBERSHIP ROSTER DATA
     const memberRoster = {
         "m101": "John Smith",
         "m102": "Sarah Jones",
@@ -130,7 +113,7 @@
         "m104": "David Beckham"
     };
 
-    // Live-formatting listener: immediately converts typed input to lowercase string
+    // Live lowercase formatter
     document.getElementById('ref-input').addEventListener('input', function(e) {
         this.value = this.value.toLowerCase();
     });
@@ -155,49 +138,6 @@
             errorMsg.classList.remove('hidden');
         }
     }
-
-    // INTERCEPT SUBMISSION TO ROUTE TO GOOGLE APPS SCRIPT WEB APP
-    document.getElementById('rsvp-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const submitBtn = document.getElementById('submit-btn');
-        submitBtn.innerText = "Submitting...";
-        submitBtn.disabled = true;
-
-        // RESTORED YOUR REAL GOOGLE SCRIPT URL HERE
-        const googleWebAppUrl = "https://google.com";
-
-        // Build URL encoded query body parameters instead of raw FormData objects
-        const urlEncodedData = new URLSearchParams();
-        urlEncodedData.append("refNumber", document.getElementById('form-ref').value);
-        urlEncodedData.append("fullName", document.getElementById('form-name').value);
-        urlEncodedData.append("attendance", document.getElementById('attendance').value);
-        urlEncodedData.append("guests", document.getElementById('guests').value);
-        urlEncodedData.append("notes", document.getElementById('notes').value);
-        
-        fetch(googleWebAppUrl, {
-            method: 'POST',
-            body: urlEncodedData,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(response => response.text())
-        .then(statusText => {
-            document.getElementById('rsvp-form').classList.add('hidden');
-            
-            // Evaluates what Google Script sent back and flags the matching success state
-            if (statusText === "Updated") {
-                document.getElementById('update-step').classList.remove('hidden');
-            } else {
-                document.getElementById('success-step').classList.remove('hidden');
-            }
-        })
-        .catch(err => {
-            alert("Error sending details. Please check your internet connection.");
-            submitBtn.innerText = "Confirm RSVP";
-            submitBtn.disabled = false;
-        });
-    });
 </script>
 
 </body>
