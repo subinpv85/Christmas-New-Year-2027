@@ -51,7 +51,7 @@
         .hidden { display: none; }
         .error { color: #dc2626; font-size: 14px; margin-top: 5px; }
         .welcome-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; color: #1e40af; font-weight: 600; margin-bottom: 20px; }
-        .update-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #2563eb; color: #1e40af; font-weight: 600; margin-bottom: 20px; border-left-color: #3b82f6; color: #1e3a8a; background-color: #eff6ff; }
+        .update-msg { background-color: #eff6ff; padding: 12px; border-radius: 6px; border-left: 4px solid #3b82f6; color: #1e3a8a; font-weight: 600; margin-bottom: 20px; }
         .success-msg { border-left: 4px solid #10b981; color: #065f46; background-color: #ecfdf5; padding: 12px; border-radius: 6px; font-weight: 600; margin-bottom: 20px; }
     </style>
 </head>
@@ -163,6 +163,7 @@
         submitBtn.innerText = "Submitting...";
         submitBtn.disabled = true;
 
+        // RESTORED YOUR REAL GOOGLE SCRIPT URL HERE
         const googleWebAppUrl = "https://google.com";
 
         // Build URL encoded query body parameters instead of raw FormData objects
