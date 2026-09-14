@@ -122,7 +122,10 @@
     };
 
     function verifyMember() {
-        const input = document.getElementById('ref-input').value.trim().toUpperCase();
+       // Automatically forces anything typed into the text box into lowercase letters
+document.getElementById('ref-input').addEventListener('input', function(e) {
+    this.value = this.value.toLowerCase();
+});
         const errorMsg = document.getElementById('error-msg');
         const lookupStep = document.getElementById('lookup-step');
         const rsvpForm = document.getElementById('rsvp-form');
